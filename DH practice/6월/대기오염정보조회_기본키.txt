@@ -1,0 +1,3 @@
+대기오염정보 조회
+개발환경 url: http://openapi.airkorea.or.kr/openapi/services/rest/ArpltnInforInqireSvc
+기본키: NTVlZ8j1a5MywJvsCoQXfOig5ms%2B5Z%2Fu%2BpTKlFRdUk3DdDiYLaf1w9F9g9H1dV3ft4Stnr7457ybjY0fRAH1WA%3D%3D
