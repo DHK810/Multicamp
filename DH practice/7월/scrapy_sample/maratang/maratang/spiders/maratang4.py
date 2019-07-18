@@ -1,57 +1,33 @@
 # -*- coding: utf-8 -*-
-import re
 import scrapy
-from naverblog_DH.items import NaverblogDhItem
-from datetime import timedelta, date
+import re
 from urllib import parse
-import time
-import random
-from time import sleep
+from maratang.items import MaratangItem
 
-start_date = date(2019, 7, 9)
-end_date = date(2019, 7, 10)
-cnt_per_page = 10
-keyword = "마라탕"
-
-url_format = "https://search.naver.com/search.naver?date_from={0}&date_option=8&date_to={0}&dup_remove=1&nso=so%3Add%2Cp%3Afrom{0}to{0}&post_blogurl=&post_blogurl_without=&query={1}&sm=tab_pge&srchby=all&st=date&where=post&start={2}"
-
-class NaverblogSpider(scrapy.Spider):
-    def daterange(start_date, end_date):
-        for n in range(int ((end_date - start_date).days)):
-            yield start_date + timedelta(n)
-
-    name = 'naverblog'
+class Maratang4Spider(scrapy.Spider):
+    name = 'maratang4'
     allowed_domains = ['naver.com'] 
-    start_urls = []
+    start_urls = ['https://search.naver.com/search.naver?date_from=20190711&date_option=8&date_to=20190711&dup_remove=1&nso=so%3Add%2Cp%3Afrom20190711to20190711&post_blogurl=&post_blogurl_without=&query=%EB%A7%88%EB%9D%BC%ED%83%95&sm=tab_pge&srchby=all&st=date&where=post&start=1',
+    'https://search.naver.com/search.naver?date_from=20190711&date_option=8&date_to=20190711&dup_remove=1&nso=so%3Add%2Cp%3Afrom20190711to20190711&post_blogurl=&post_blogurl_without=&query=%EB%A7%88%EB%9D%BC%ED%83%95&sm=tab_pge&srchby=all&st=date&where=post&start=11',
+    'https://search.naver.com/search.naver?date_from=20190711&date_option=8&date_to=20190711&dup_remove=1&nso=so%3Add%2Cp%3Afrom20190711to20190711&post_blogurl=&post_blogurl_without=&query=%EB%A7%88%EB%9D%BC%ED%83%95&sm=tab_pge&srchby=all&st=date&where=post&start=21']
     
-    for single_date in daterange(start_date, end_date):
-        start_urls.append(url_format.format(single_date.strftime("%Y%m%d"), keyword, 1))
-
     def parse(self, response):
         for href in response.xpath("//ul[@class='type01']/li/dl/dt/a/@href").extract() :
+            print(href)
             yield response.follow(href, self.parse_iframe)
-       
-        total_cnt = int(re.sub('[()전체건,]', '', response.xpath("//div[@class='title_desc all_my']/span/text()").get().split('/')[1]))
-        query_str = parse.parse_qs(parse.urlsplit(response.url).query)
-        currpage = int(query_str['start'][0]) 
-
-        startdate = query_str['date_from'][0]
-        print("=================== [" + startdate + '] ' + str(currpage) + '/' + str(total_cnt) + "===================") 
-        if currpage  < total_cnt : 
-            yield response.follow(url_format.format(startdate, keyword, currpage+10)   , self.parse)
-
 
     def parse_iframe(self, response):    
-        href = 'https://blog.naver.com' + response.xpath("//iframe/@src").get()
-        yield response.follow(href, self.parse_details)
+        iframe_url = response.xpath("//iframe/@src").get()
+        if iframe_url != None :
+            href = 'https://blog.naver.com' + response.xpath("//iframe/@src").get()
+            yield response.follow(href, self.parse_details)
 
-    def parse_details(self, response):    
-        item = NaverblogDhItem()
+    def parse_details(self, response):  
+        item = MaratangItem()
         item['url'] = response.url
         query_str = parse.parse_qs(parse.urlsplit(response.url).query)
         item['author'] = query_str['blogId'][0]
 
-        
         titlecontent = ""
         title = ""
 
@@ -70,9 +46,11 @@ class NaverblogSpider(scrapy.Spider):
                 item['date'] = response.xpath("//p[contains(@class,'_postAddDate')]/text()").get()
                 content = str(response.xpath("//div[@id='postViewArea']/div").get())
 
+            # 내부 html이 다른 경우를 위한 예외 처리 작업/ 추후에 뉴스 크롤링할 때 뉴스매체별로 다른 html을 사용하기 때문에 그에 맞는 html분석 방법 적용해야함.
         title = re.sub(' +', ' ', str(re.sub(re.compile('<.*?>'), ' ', title.replace('"','')).replace('\r\n','').replace('\n','').replace('\t','').replace('\u200b','').strip()))
         content = re.sub(' +', ' ', str(re.sub(re.compile('<.*?>'), ' ', content.replace('"','')).replace('\r\n','').replace('\n','').replace('\t','').replace('\u200b','').strip()))
         item['title'] = title 
         item['content'] = content  
 
         yield item
+        

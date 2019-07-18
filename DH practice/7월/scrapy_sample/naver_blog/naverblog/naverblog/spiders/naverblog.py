@@ -23,7 +23,7 @@ class NaverblogSpider(scrapy.Spider):
     name = 'naverblog'
     allowed_domains = ['naver.com'] 
     start_urls = []
-    
+    #네이버의 경우 100개 이상이면 못가져오도록 제한걸려있음. 이걸 해결하기 위해 하루치만 가져옴.
     for single_date in daterange(start_date, end_date):
         start_urls.append(url_format.format(single_date.strftime("%Y%m%d"), keyword, 1))
 
@@ -34,7 +34,7 @@ class NaverblogSpider(scrapy.Spider):
         total_cnt = int(re.sub('[()전체건,]', '', response.xpath("//div[@class='section_head']/span/text()").get().split('/')[1]))
         query_str = parse.parse_qs(parse.urlsplit(response.url).query)
         currpage = int(query_str['start'][0]) 
-
+#https://search.naver.com/search.naver?date_from=20190711&date_option=8&date_to=20190711&dup_remove=1&nso=so:dd,p:from20190711to20190711&post_blogurl=&post_blogurl_without=&query=%EB%A7%88%EB%9D%BC%ED%83%95&sm=tab_pge&srchby=all&st=date&where=post&start=1
         startdate = query_str['date_from'][0]
         print("=================== [" + startdate + '] ' + str(currpage) + '/' + str(total_cnt) + "===================") 
         if currpage  < total_cnt : 
