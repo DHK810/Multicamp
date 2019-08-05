@@ -13,4 +13,8 @@ class AmazonCrawlItem(scrapy.Item):
     # name = scrapy.Field()
     product_name = scrapy.Field()
     review = scrapy.Field()
+    review_date = scrapy.Field()
+    score = scrapy.Field()
+    user = scrapy.Field()
+
     
