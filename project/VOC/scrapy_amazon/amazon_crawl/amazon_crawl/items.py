@@ -16,5 +16,7 @@ class AmazonCrawlItem(scrapy.Item):
     review_date = scrapy.Field()
     score = scrapy.Field()
     user = scrapy.Field()
+    asin = scrapy.Field()
+    item_model_no = scrapy.Field()
 
     
